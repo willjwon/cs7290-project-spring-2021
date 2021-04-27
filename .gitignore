@@ -7,3 +7,11 @@
 
 # Python
 __pycache__/
+
+# dataset
+src/data/*
+!src/data/__init__.py
+
+# trained model
+src/model/*
+!src/model/__init__.py
