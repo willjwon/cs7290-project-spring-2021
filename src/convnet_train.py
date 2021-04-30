@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from data_loader.cifar10_loader import Cifar10Loader
-from alexnet.alexnet import AlexNet
+from convnet.convnet import AlexNet
 
 
 def test_accuracy(net: nn.Module, data_loader: Cifar10Loader) -> float:

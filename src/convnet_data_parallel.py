@@ -4,7 +4,12 @@ import torch.nn.functional as F
 import torch.optim as optim
 from data_loader.cifar10_loader import Cifar10Loader
 from distributed_library.mpi import all_reduce
-from alexnet.alexnet import AlexNet
+from convnet.convnet import AlexNet
+from compression.compression_tracker_lz4 import CompressionTrackerLz4, CompressionTrackerLz4Concat
+from compression.compression_tracker_lzo import CompressionTrackerLzo, CompressionTrackerLzoConcat
+from compression.compression_tracker_zstd import CompressionTrackerZstd, CompressionTrackerZstdConcat
+from compression.compression_tracker_deflate import CompressionTrackerDeflate, CompressionTrackerDeflateConcat
+from plotter.compression_ratio_histogram import plot_compression_ratio_histogram
 
 
 def test_accuracy(net: nn.Module, data_loader: Cifar10Loader) -> float:
@@ -29,11 +34,15 @@ def main():
     batch_size = 8
     learning_rate = 1e-3
     momentum = 0.9
-    epochs = 2
+    epochs = 1
 
     # non hyper-parameter configs
-    loss_print_step = 1000
-    model_save_path = 'model/alexnet-cifar10-distributed.pth'
+    # loss_print_step = 100
+    loss_print_step = 2000
+    model_save_path = 'model/convnet-cifar10-distributed.pth'
+
+    # compression tracker
+    compression_tracker = CompressionTrackerDeflateConcat()
 
     # CIFAR10 loader
     print("[DataLoader] Loading CIFAR10")
@@ -106,7 +115,7 @@ def main():
 
             # do all-reduce
             for name, _ in net.named_parameters():
-                all_reduce(nodes_count=npus_count, message=gradient[name])
+                all_reduce(nodes_count=npus_count, message=gradient[name], tracker=compression_tracker)
 
             # apply gradient
             for name, params in net.named_parameters():
@@ -138,9 +147,15 @@ def main():
                 print(f"[Epoch {epoch}, minibatch {minibatch_index}] Loss: {running_loss / loss_print_step}")
                 running_loss = 0
 
+                # plot_compression_ratio_histogram(tracker=compression_tracker)
+                # exit(-1)
+
         # test accuracy
         accuracy = test_accuracy(net=net, data_loader=data_loader)
         print(f"[Epoch {epoch}] Test accuracy: {accuracy}")
+
+    # plot histogram result
+    plot_compression_ratio_histogram(tracker=compression_tracker)
 
 
 if __name__ == '__main__':
