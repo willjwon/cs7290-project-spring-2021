@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from cifar10_loader import Cifar10Loader
-from alexnet import AlexNet
+from data_loader.cifar10_loader import Cifar10Loader
+from alexnet.alexnet import AlexNet
 
 
 def test_accuracy(net: nn.Module, data_loader: Cifar10Loader) -> float:
@@ -18,6 +18,7 @@ def test_accuracy(net: nn.Module, data_loader: Cifar10Loader) -> float:
 
     return correct_count / total_count
 
+
 def main():
     # hyper-parameters
     batch_size = 8
@@ -27,11 +28,11 @@ def main():
 
     # non hyper-parameter configs
     loss_print_step = 1000
-    model_save_path = '../model/alexnet-cifar10.pth'
+    model_save_path = 'model/alexnet-cifar10.pth'
 
     # CIFAR10 loader
     print("[DataLoader] Loading CIFAR10")
-    data_loader = Cifar10Loader(batch_size=batch_size, path='../data')
+    data_loader = Cifar10Loader(batch_size=batch_size, path='./data')
 
     # Network
     net = AlexNet()
